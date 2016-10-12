@@ -64,33 +64,40 @@
 ;; -----------------------------------------------------------------------------
 
 (module+ test
-  (check-equal? (syntax-parse #'(1 2 3)
+  ;; These use read-syntax to generate the syntax objects
+  ;; so that they will have the correct syntax properties
+  (define parens-123   (read-syntax 'test (open-input-string "(1 2 3)")))
+  (define brackets-123 (read-syntax 'test (open-input-string "[1 2 3]")))
+  (define braces-123   (read-syntax 'test (open-input-string "{1 2 3}")))
+  (define double-brackets-123 (read-syntax 'test (open-input-string "[[1 2 3]]")))
+
+  (check-equal? (syntax-parse parens-123
                   [(~parens a b c)
                    (syntax-e #'a)])
                 1)
-  (check-equal? (syntax-parse #'[1 2 3]
+  (check-equal? (syntax-parse brackets-123
                   [(~brackets a b c)
                    (syntax-e #'a)])
                 1)
-  (check-equal? (syntax-parse #'{1 2 3}
+  (check-equal? (syntax-parse braces-123
                   [(~braces a b c)
                    (syntax-e #'a)])
                 1)
-  (check-equal? (syntax-parse #'[[1 2 3]]
+  (check-equal? (syntax-parse double-brackets-123
                   [(~brackets (~brackets a b c))
                    (syntax-e #'a)])
                 1)
 
   (check-exn #rx"expected \\( and \\)"
-             (λ () (syntax-parse #'[1 2 3]
+             (λ () (syntax-parse brackets-123
                      [(~parens a b c)
                       #'a])))
   (check-exn #rx"expected \\[ and \\]"
-             (λ () (syntax-parse #'{1 2 3}
+             (λ () (syntax-parse braces-123
                      [(~brackets a b c)
                       #'a])))
   (check-exn #rx"expected \\{ and \\}"
-             (λ () (syntax-parse #'(1 2 3)
+             (λ () (syntax-parse parens-123
                      [(~braces a b c)
                       #'a])))
   )
